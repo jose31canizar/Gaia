@@ -1,0 +1,16 @@
+HW05: WebGL
+
+Jose Canizares
+CSCI 4239/5239 Advanced Graphics
+Spring 2017
+
+Simple WebGL Scene. I struggled with this assignment so I was only able to get ambient light to work. I'm not sure
+why my Phong function fails to light up the scene. Also had problems with gl.DrawArrays indexing out of range and the normals.
+The scene just changes color with the buttons. 
+I planned on putting more icosahedron shapes but was spending too much time on figuring out what was wrong with my phong lighting.
+
+How to Run:
+open html file.
+
+Time to Complete:
+8 hours

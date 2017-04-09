@@ -1,0 +1,26 @@
+Gaia
+
+Grid
+Per-pixel Phong Lighting
+Sky box
+Depth of Field (using a Z Map and image processing)
+Bump Map
+Blur
+Atmospheric lighting
+Bloom
+Warm Filter
+Contrast Filter
+Parallax Map
+Shadows
+Smooth Interpolation of Biomes
+
+Biome Types
+Grass (wind)
+Rocks
+Hexagonal Rocks (Iceland)
+Desert
+Beach
+Mountainous
+Waves
+Volcanic
+

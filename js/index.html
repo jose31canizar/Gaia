@@ -1,0 +1,104 @@
+<html>
+
+<head>
+    <title>Jose Canizares HW05: WebGL Scene</title>
+
+    <!--
+  CanvasMatrix class
+  (c) Apple Inc
+  -->
+  <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Karla">
+    <script src="webglTest.js" type="text/javascript"></script>
+    <script src="CanvasMatrix.js" type="text/javascript"></script>
+    <script src="flatMap.js" type="text/javascript"></script>
+    <script src="translate.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="index.css" />
+
+    <!--Vertex shader-->
+    <script id="shader-vs" src="vertexShader.js" type="x-shader/x-vertex">
+      precision highp float;
+      attribute vec3 XYZ;
+      attribute vec3 RGB;
+      attribute vec3 Normals;
+      uniform float Red;
+      uniform float Blue;
+      uniform float Green;
+      uniform float lx;
+      uniform float ly;
+      uniform float lz;
+      uniform mat4 ProjectionMatrix;
+      uniform mat4 ModelViewMatrix;
+      uniform mat4 NormalMatrix;
+      varying vec3 col;
+      //Light information
+      uniform float LightAmbient;
+      uniform float LightDiffuse;
+      uniform float LightSpecular;
+
+      vec3 phong()
+      {
+         //P is the vertex coordinate on body
+         vec3 P = vec3(ModelViewMatrix * vec4(XYZ.x, XYZ.y, XYZ.z, 1.0));
+         //N is the object normal at P
+         vec3 N = normalize(vec3(NormalMatrix * vec4(Normals.x, Normals.y, Normals.z, 1.0)));
+         //L is the light vector
+         vec3 L = normalize(vec3(ModelViewMatrix * vec4(lx, ly, lz, 1.0)) - P);
+         //Emission and ambient color
+         vec3 color = vec3(LightAmbient);
+
+         //Diffuse light intensity is cosine of light and normal vectors
+         float Id = dot(L,N);
+         if (Id>0.0)
+         {
+            //  Add diffuse
+            color += Id*LightDiffuse;
+            //  R is the reflected light vector R = 2(L.N)N - L
+            vec3 R = reflect(-L, N);
+            //  V is the view vector (eye at the origin)
+            vec3 V = normalize(-P);
+            //  Specular is cosine of reflected and view vectors
+            float Is = dot(R,V);
+            if (Is>0.0) color += pow(Is,32.0)*LightSpecular;
+         }
+
+         //  Return sum of color components
+         return color;
+      }
+
+      void main(void) {
+        float scale = 40.0;
+        // col = vec3(Red, Green, Blue)*phong();
+        //col = vec3(Red, Green, Blue);
+        // col = RGB;
+        col = (vec3(Red, Green, Blue))*phong();
+        // col = phong();
+        gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(XYZ.x/scale, XYZ.y/scale, XYZ.z/scale,1.0);
+      }
+    </script>
+
+    <!--Fragment shader-->
+    <script id="shader-fs" src="fragShader.js" type="x-shader/x-fragment">
+      precision highp float;
+      varying vec3 col;
+      void main(void) {
+        gl_FragColor = vec4(col,1);
+      }
+    </script>
+    <script src="palette.js" type="text/javascript"></script>
+    <script src="hexToRgb.js" type="text/javascript"></script>
+    <script src="paintify.js" type="text/javascript"></script>
+    <script src="index.js" type="text/javascript"></script>
+</head>
+
+<body onload="webGLStart();" onresize="canvas.resize();">
+    <H1>Arke</H1>
+    <div id="dropdown"></div>
+    <canvas id="canvas"></canvas>
+    <script src="dropdown.js" type="text/javascript"></script>
+</body>
+
+</html>
+</body>
+
+</html>
