@@ -13,7 +13,7 @@
     var normalsBuffer;
     var indicesBuffer;
 
-    var gridSize = 3;
+    var gridSize = 4;
     var scale = 1;
 
     function CompileShader(gl, id) {
