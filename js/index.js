@@ -14,10 +14,7 @@
     var indicesBuffer;
 
     var gridSize = 3;
-    var scale = 50;
-
-    //  Vertex array count
-    var n = gridSize*4;
+    var scale = 1;
 
     function CompileShader(gl, id) {
         //  Get shader by id
@@ -124,43 +121,40 @@
         vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
-        var vertices = [
-          -3.0, 0.0, -3.0,
-          -1.0, 0.0, -3.0,
-          1.0, 0.0, -3.0,
-          3.0, 0.0, -3.0,
+        var vertices = [];
 
-          -3.0, 0.0, -1.0,
-          -1.0, 0.0, -1.0,
-          1.0, 0.0, -1.0,
-          3.0, 0.0, -1.0,
-
-          -3.0, 0.0, 1.0,
-          -1.0, 0.0, 1.0,
-          1.0, 0.0, 1.0,
-          3.0, 0.0, 1.0,
-
-          -3.0, 0.0, 3.0,
-          -1.0, 0.0, 3.0,
-          1.0, 0.0, 3.0,
-          3.0, 0.0, 3.0
-        ];
+        for(var i = 0; i < gridSize + 1; i++) {
+          for(var j = 0; j < gridSize + 1; j++) {
+            vertices.push(j*2 - gridSize);
+            vertices.push(0);
+            vertices.push(i*2 - gridSize);
+          }
+        }
 
 
 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        // vertexBuffer.itemSize = 3;
-        // vertexBuffer.numItems = 16;
-
 
         indicesBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 
-        var indices = [
-          4, 0, 5, 1, 6, 2, 7, 3,
-          8, 4, 9, 5, 10, 6, 11, 7,
-          12, 8, 13, 9, 14, 10, 15, 11
-        ];
+        // var indices = [
+        //   4, 0, 5, 1, 6, 2, 7, 3,
+        //   8, 4, 9, 5, 10, 6, 11, 7,
+        //   12, 8, 13, 9, 14, 10, 15, 11
+        // ];
+
+        var indices = [];
+
+        for(var i = 0; i < gridSize; i++) {
+          const inc = i*(gridSize + 1);
+          for(var j = 0; j < gridSize + 1; j++) {
+            indices.push(inc + gridSize + j + 1);
+            indices.push(inc + j);
+          }
+        }
+
+        console.log(indices);
 
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
         // indicesBuffer.itemSize = 1;
@@ -208,7 +202,7 @@
             var ld = [0.5]; //diffuse light
             var ls = [0.5]; //specular light
 
-            var x = [0.5];
+            var x = [0.0];
             var y = [0.5];
             var z = [0.5];
 
@@ -239,7 +233,6 @@
             gl.vertexAttribPointer(Normals, 3, gl.FLOAT, false, 0, 0);
 
 
-
             //  Set projection and modelview matrixes
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
@@ -250,11 +243,13 @@
             //  Disable vertex arrays
             gl.disableVertexAttribArray(Normals);
 
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 0);
-            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 16);
-            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 32);
+
+            const v = gridSize*2 + 2;
+            for(var i = 0; i < gridSize; i++) {
+              gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
+            }
+
 
             gl.disableVertexAttribArray(vertexAttribArray);
 
