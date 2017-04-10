@@ -19,14 +19,6 @@
     //  Vertex array count
     var n = gridSize*4;
 
-    // function createBindSendBufferDataForIndices(gl, data) {
-    //   console.log('data is' + data);
-    //   var buffer = gl.createBuffer();
-    //   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    //   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.STATIC_DRAW);
-    //   return buffer;
-    // }
-
     function CompileShader(gl, id) {
         //  Get shader by id
         var src = document.getElementById(id);
@@ -87,7 +79,7 @@
             return;
         }
         try {
-            gl = canvas.getContext("experimental-webgl");
+            gl = canvas.getContext("webgl2");
         } catch (e) {}
         if (!gl) {
             alert("Can't get WebGL");
@@ -151,12 +143,14 @@
           -3.0, 0.0, 3.0,
           -1.0, 0.0, 3.0,
           1.0, 0.0, 3.0,
-          3.0, 0.0, 3.0,
+          3.0, 0.0, 3.0
         ];
 
+
+
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        vertexBuffer.itemSize = 3;
-        vertexBuffer.numItems = 16;
+        // vertexBuffer.itemSize = 3;
+        // vertexBuffer.numItems = 16;
 
 
         indicesBuffer = gl.createBuffer();
@@ -164,12 +158,13 @@
 
         var indices = [
           4, 0, 5, 1, 6, 2, 7, 3,
-          8, 4, 9, 5, 10, 6, 11, 7
+          8, 4, 9, 5, 10, 6, 11, 7,
+          12, 8, 13, 9, 14, 10, 15, 11
         ];
 
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-        indicesBuffer.itemSize = 1;
-        indicesBuffer.numItems = 16;
+        // indicesBuffer.itemSize = 1;
+        // indicesBuffer.numItems = 16;
 
         //  Set state to draw scene
         gl.enable(gl.DEPTH_TEST);
@@ -228,11 +223,9 @@
             gl.uniform1f(gl.getUniformLocation(prog, "Red"), new Float32Array(r));
             gl.uniform1f(gl.getUniformLocation(prog, "Green"), new Float32Array(g));
             gl.uniform1f(gl.getUniformLocation(prog, "Blue"), new Float32Array(b));
-            //  Set projection and modelview matrixes
 
-            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
-            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
-            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+
+
 
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
             var Vertices = gl.getAttribLocation(prog, "XYZ");
@@ -246,13 +239,25 @@
             gl.vertexAttribPointer(Normals, 3, gl.FLOAT, false, 0, 0);
 
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 0);
+
+            //  Set projection and modelview matrixes
+            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+            gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+
+            // var ext = gl.getExtension('OES_element_index_uint');
 
             //  Disable vertex arrays
             gl.disableVertexAttribArray(Normals);
 
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 16);
+            gl.drawElements(gl.TRIANGLE_STRIP, 8, gl.UNSIGNED_SHORT, 32);
+
             gl.disableVertexAttribArray(vertexAttribArray);
+
 
 
             //  Flush

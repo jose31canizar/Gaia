@@ -6,4 +6,4 @@ var webgl = function() {
    }catch( e ) { return false; }
  };
 
- console.log(webgl());
+ // console.log(webgl());
