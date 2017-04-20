@@ -1,5 +1,5 @@
 html, body {
-  background-color: #EFD5C3;
+  background-color: #f3f1f0;
 }
 
 canvas {
@@ -8,38 +8,94 @@ canvas {
 }
 
 h1 {
-  position: absolute;
   font-family: Karla, Futura, Helvetica, sans-serif;
-  font-weight: 100;
-  margin-left: 15%;
-  width: 25%;
-  top: 0;
+  color: #606754;
+}
+
+p {
+  font-family: Karla, Futura, Helvetica, sans-serif;
   color: #606754;
 }
 
 #dropdown {
-      position: absolute;
-
+  position: absolute;
+  left: 0;
+  background: #8181a9;
+  display: block;
+  width: 100%;
+  border-radius: 5px;
 }
 
-button {
-  display: block;
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   user-select: none;
-  border: none;
-  font-size: 18px;
+  border-color: #bfaba2;
+  border-style: solid;
+  outline: none;
+  font-size: 1em;
   font-family: Karla, Helvetica, sans-serif;
   font-weight: 100;
-  color: #efd5c3;
-  background-color: #232b2b;
-  margin-top: 10px;
-  width: 100px;
-  border-radius: 5px;
-  opacity: 0.5;
-  -webkit-transition: color 0.3s ease-in-out, background-color 0s ease-in-out; /* Safari */
-  transition: color 0.3s ease-in-out, background-color 0s ease-in-out;
+  color: #020202;
+  background-color: transparent;
+  margin: 1vw;
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
-button:hover {
+.btn p {
+  padding-left: 400%;
+  width: 100%;
+  color: #bfaba2;
+  font-size: 12px;
+  font-weight: 100;
+  cursor: pointer;
+}
+
+
+
+.btn:hover > p {
   color: white;
-  background-color: red;
+  user-select: none;
+  -webkit-transition: all 0.2s ease-in-out; /* Safari */
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  border-color: white;
+  user-select: none;
+  -webkit-transition: all 0.2s ease-in-out; /* Safari */
+  transition: all 0.2s ease-in-out;
+  border-radius: 0%;
+  background: white;
+}
+
+.container {
+  position: absolute;
+}
+
+.change-dim {
+  background: #8181a9;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-family: karla;
+  font-size: 12px;
+  text-align: center;
+  color: white;
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+justify-content: center;
+align-items: center;
+height: 10vh;
+}
+
+.change-dim:hover {
+  background: #595963;
+  transition: all, 0.5s, ease-in-out;
 }
