@@ -32,13 +32,14 @@
 
     var dim = 4;
     var scale = 1;
-    var la = [0.9]; //ambient light
-    var ld = [0.5]; //diffuse light
-    var ls = [0.5]; //specular light
+    var la = [0.1]; //ambient light
+    var ld = [1.9]; //diffuse light
+    var ls = [0.75]; //specular light
 
-    var x = [0.5];
-    var y = [0.5];
-    var z = [0.5];
+    //light position
+    var x = [1.5];
+    var y = [1.5];
+    var z = [1.5];
 
     var positionLocation;
     var normalLocation;
@@ -77,7 +78,7 @@
       for(var i = 0; i < dim + 1; i++) {
         for(var j = 0; j < dim + 1; j++) {
           vertices.push(j*2 - dim);
-          vertices.push(0);
+          vertices.push(0.0);
           vertices.push(i*2 - dim);
         }
       }
@@ -88,9 +89,9 @@
       var normals = [];
       for(var i = 0; i < dim + 1; i++) {
         for(var j = 0; j < dim + 1; j++) {
-          normals.push(0);
+          normals.push(0.0);
           normals.push(1.0);
-          normals.push(0);
+          normals.push(0.0);
         }
       }
       return normals;
@@ -210,7 +211,7 @@
 
 
       positionLocation = gl.getAttribLocation(prog, "XYZ");
-      normalLocation = gl.getAttribLocation(prog, "Normals");
+      normalLocation = gl.getAttribLocation(prog, "Normal");
 
       image = new Image();
       image.crossOrigin = 'Anonymous';
@@ -321,6 +322,8 @@
 
         normals = setUpNormals(dim);
 
+        console.log('normals ' + normals);
+
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
         vertexBuffer = gl.createBuffer();
@@ -352,15 +355,23 @@
 
         setInterval(function(){
           Display();
-        }, 200);
+        }, 50);
 
 
-        //
-        //  Display the scene
-        //
         function Display() {
 
-            gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
+
+          Draw();
+
+           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        }
+
+        //
+        //  Draw the scene
+        //
+        function Draw() {
 
             //  Clear the screen and Z buffer
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -381,7 +392,7 @@
             var b = [blue(currentColor)/255.0];
 
             var t = Date.now() /1000; //seconds in decimal
-            var p = t;
+            var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
             // console.log(p);
 
             gl.uniform1f(gl.getUniformLocation(prog, "time"), new Float32Array([p]));
@@ -415,7 +426,7 @@
             // var ext = gl.getExtension('OES_element_index_uint');
 
             //  Disable vertex arrays
-            gl.disableVertexAttribArray(normalLocation);
+            //gl.disableVertexAttribArray(normalLocation);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 
@@ -425,7 +436,7 @@
             }
 
 
-            gl.disableVertexAttribArray(positionLocation);
+            //gl.disableVertexAttribArray(positionLocation);
 
 
             //  Flush
