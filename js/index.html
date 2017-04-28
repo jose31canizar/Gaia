@@ -20,6 +20,7 @@
       attribute vec3 XYZ;
       attribute vec3 RGB;
       attribute vec3 Normal;
+
       uniform float Red;
       uniform float Blue;
       uniform float Green;
@@ -37,8 +38,8 @@
       uniform float LightSpecular;
       varying vec3 fPosition;
       varying vec3 fNormal;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
+      // attribute vec2 TexCoord;
+      // varying vec2 vTexCoord;
 
       //from here: http://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
       float rand(vec2 co){
@@ -85,7 +86,7 @@
 
         col = (vec3(Red*time, Green*time, Blue*time))*phong();
 
-        //v_texCoord = a_texCoord;
+        // vTexCoord = TexCoord;
       }
     </script>
 
@@ -103,8 +104,9 @@
       varying vec3 fPosition; //P
       varying vec3 fNormal; //N
       uniform sampler2D u_image;
-      varying vec2 v_texCoord;
+      // varying vec2 vTexCoord;
       uniform float time;
+      // uniform sampler2D uSampler;
 
       vec3 phong()
       {
@@ -137,6 +139,8 @@
 
         vec4 col2 = vec4(col,1.0)*vec4(phong(),1.0);
         gl_FragColor = col2;
+        // gl_FragColor = texture2D(uSampler, vec2(vTexCoord.s, vTexCoord.t));
+
         // gl_FragColor = vec4(col.x, col.y, time, 1.0);
 
         //gl_FragColor = texture2D(u_image, v_texCoord);

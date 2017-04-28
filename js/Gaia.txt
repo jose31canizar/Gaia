@@ -2,14 +2,15 @@ Gaia
 
 Grid
 Per-pixel Phong Lighting
-Sky box
-Depth of Field (using a Z Map and image processing)
-Bump Map
 Blur
-Atmospheric lighting
 Bloom
 Warm Filter
 Contrast Filter
+Depth of Field (using a Z Map and image processing)
+Sky box
+Bump Map
+Atmospheric lighting
+
 Parallax Map
 Shadows
 Smooth Interpolation of Biomes
@@ -23,4 +24,3 @@ Beach
 Mountainous
 Waves
 Volcanic
-

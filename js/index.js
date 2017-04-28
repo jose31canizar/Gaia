@@ -24,11 +24,13 @@
     var normals = [];
     var vertices = [];
     var indices = [];
+    var textureCoordinates = [];
 
     var vertexAttribArray;
     var vertexBuffer;
     var normalsBuffer;
     var indicesBuffer;
+    var textureCoordinatesBuffer;
 
     var dim = 4;
     var scale = 1;
@@ -43,6 +45,7 @@
 
     var positionLocation;
     var normalLocation;
+    var textureLocation;
 
     var prog;
 
@@ -54,23 +57,24 @@
       Framebuffer.height = 512;
 
       Texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, Texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-      gl.generateMipmap(gl.TEXTURE_2D);
-
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Framebuffer.width, Framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
-      var renderbuffer = gl.createRenderbuffer();
-      gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, rttFramebuffer.width, rttFramebuffer.height);
-
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
-      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-
-      gl.bindTexture(gl.TEXTURE_2D, null);
-      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        Framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
+        Framebuffer.width = 512;
+        Framebuffer.height = 512;
+        rttTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, rttTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Framebuffer.width, Framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        var renderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, Framebuffer.width, Framebuffer.height);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rttTexture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     function setUpVertices(dim) {
@@ -109,11 +113,23 @@
       return indices;
     }
 
+    function setUpTextureCoordinates(dim) {
+      var textureCoordinates = [];
+      for(var i = 0; i < dim + 1; i++) {
+        for(var j = 0; j < dim + 1; j++) {
+          textureCoordinates.push(i/5.0);
+          textureCoordinates.push(j/5.0);
+        }
+      }
+      console.log(textureCoordinates);
+      return textureCoordinates;
+    }
+
     function setup(d) {
       normals = setUpNormals(d);
       vertices = setUpVertices(d);
       indices = setUpIndices(d);
-
+      textureCoordinates = setUpTextureCoordinates(d);
     }
 
     function increase_dim() {
@@ -123,14 +139,12 @@
       dim = dim *2;
       setup(dim);
       render();
-      // console.log('changed to ' + dim);
     }
 
     function decrease_dim() {
       dim = dim / 2;
       setup(dim);
       render();
-      // console.log('changed to ' + dim);
     }
 
     function CompileShader(gl, id) {
@@ -200,8 +214,8 @@
           return;
       }
 
-      //  Set viewport to entire canvas
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      //create our framebuffer
+      initTextureFramebuffer();
 
       //  Load Shader
       prog = CompileShaderProg(gl, "shader-vs", "shader-fs");
@@ -212,13 +226,14 @@
 
       positionLocation = gl.getAttribLocation(prog, "XYZ");
       normalLocation = gl.getAttribLocation(prog, "Normal");
+      textureLocation = gl.getAttribLocation(prog, "TexCoord");
 
-      image = new Image();
-      image.crossOrigin = 'Anonymous';
-      image.src = "./IMG_4250.jpg";
-      image.onload = function() {
+      // image = new Image();
+      // image.crossOrigin = 'Anonymous';
+      // image.src = "./IMG_4250.jpg";
+      // image.onload = function() {
         render();
-      }
+      // }
     }
 
     function setRectangle(gl, x, y, width, height) {
@@ -240,89 +255,18 @@
 
     function render() {
 
-        // console.log('rendering!');
+        //  Set viewport to entire canvas
+        gl.viewport(0, 0, canvas.width, canvas.height);
 
         //  Set projection
         var ProjectionMatrix = new CanvasMatrix4();
 
         ProjectionMatrix.perspective(100, asp, 0.001, 100);
 
-        // var texcoordLocation = gl.getAttribLocation(prog, "a_texCoord");
-
-
-          // // Set a rectangle the same size as the image.
-          // setRectangle(gl, 0, 0, image.width, image.height);
-          //
-          // // provide texture coordinates for the rectangle.
-          // var texcoordBuffer = gl.createBuffer();
-          // gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-          // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-          //     0.0,  0.0,
-          //     1.0,  0.0,
-          //     0.0,  1.0,
-          //     0.0,  1.0,
-          //     1.0,  0.0,
-          //     1.0,  1.0,
-          // ]), gl.STATIC_DRAW);
-          //
-          // // Create a texture.
-          // var texture = gl.createTexture();
-          // gl.bindTexture(gl.TEXTURE_2D, texture);
-          //
-          // // Set the parameters so we can render any size image.
-          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-          // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-          //
-          // // Upload the image into the texture.
-          // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-          //
-          // // lookup uniforms
-          // var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-          //
-          // gl.enableVertexAttribArray(positionLocation);
-          // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-          //
-          // var size = 2;          // 2 components per iteration
-          // var type = gl.FLOAT;   // the data is 32bit floats
-          // var normalize = false; // don't normalize the data
-          // var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-          // var offset = 0;        // start at the beginning of the buffer
-          // gl.vertexAttribPointer(
-          //             positionLocation, size, type, normalize, stride, offset)
-          //
-          // // Turn on the teccord attribute
-          // gl.enableVertexAttribArray(texcoordLocation);
-          //
-          // // Bind the position buffer.
-          // gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-          //
-          // // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-          // var size = 2;          // 2 components per iteration
-          // var type = gl.FLOAT;   // the data is 32bit floats
-          // var normalize = false; // don't normalize the data
-          // var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-          // var offset = 0;        // start at the beginning of the buffer
-          // gl.vertexAttribPointer(
-          //     texcoordLocation, size, type, normalize, stride, offset)
-          //
-          // // set the resolution
-          // gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
-          //
-          // // Draw the rectangle.
-          // var primitiveType = gl.TRIANGLES;
-          // var offset = 0;
-          // var count = 6;
-          // gl.drawArrays(primitiveType, offset, count);
-
-
         normalsBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
 
         normals = setUpNormals(dim);
-
-        console.log('normals ' + normals);
 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
 
@@ -331,8 +275,6 @@
 
         vertices = setUpVertices(dim);
 
-
-
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
         indicesBuffer = gl.createBuffer();
@@ -340,9 +282,17 @@
 
         indices = setUpIndices(dim);
 
-        // console.log('indices: ' + indices);
-
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+
+        textureCoordinatesBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordinatesBuffer);
+
+        textureCoordinates = setUpTextureCoordinates(dim);
+
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+
+
         // indicesBuffer.itemSize = 1;
         // indicesBuffer.numItems = 16;
 
@@ -364,15 +314,82 @@
 
           Draw();
 
-           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+          // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+
+          //  Clear the screen and Z buffer
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+          // Compute modelview matrix
+          var ModelViewMatrix = new CanvasMatrix4();
+          ModelViewMatrix.makeIdentity();
+
+          ModelViewMatrix.rotate(ph, 0, 1, 0);
+          ModelViewMatrix.rotate(th, 1, 0, 0);
+          ModelViewMatrix.translate(0, 0, -0.2);
+
+          // Set shader
+          gl.useProgram(prog);
+
+          var r = [red(currentColor)/255.0];
+          var g = [green(currentColor)/255.0];
+          var b = [blue(currentColor)/255.0];
+
+          var t = Date.now() /1000; //seconds in decimal
+          var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
+
+          gl.uniform1f(gl.getUniformLocation(prog, "time"), new Float32Array([p]));
+
+          gl.uniform1f(gl.getUniformLocation(prog, "lx"), new Float32Array(x));
+          gl.uniform1f(gl.getUniformLocation(prog, "ly"), new Float32Array(y));
+          gl.uniform1f(gl.getUniformLocation(prog, "lz"), new Float32Array(z));
+
+          gl.uniform1f(gl.getUniformLocation(prog, "LightAmbient"), new Float32Array(la));
+          gl.uniform1f(gl.getUniformLocation(prog, "LightDiffuse"), new Float32Array(ld));
+          gl.uniform1f(gl.getUniformLocation(prog, "LightSpecular"), new Float32Array(ls));
+
+          gl.uniform1f(gl.getUniformLocation(prog, "Red"), new Float32Array(r));
+          gl.uniform1f(gl.getUniformLocation(prog, "Green"), new Float32Array(g));
+          gl.uniform1f(gl.getUniformLocation(prog, "Blue"), new Float32Array(b));
+
+          gl.enableVertexAttribArray(positionLocation);
+          gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+          gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+          gl.enableVertexAttribArray(normalLocation);
+          gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
+          gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+
+          gl.enableVertexAttribArray(textureLocation);
+          gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordinatesBuffer);
+          gl.vertexAttribPointer(textureLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+
+          //  Set projection and modelview matrixes
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, Texture);
+          gl.uniform1i(prog.samplerUniform, 0);
+
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+
+          const v = dim*2 + 2;
+          for(var i = 0; i < dim; i++) {
+            gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
+          }
         }
 
-        //
-        //  Draw the scene
-        //
         function Draw() {
 
+            // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
+            // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             //  Clear the screen and Z buffer
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -393,7 +410,6 @@
 
             var t = Date.now() /1000; //seconds in decimal
             var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
-            // console.log(p);
 
             gl.uniform1f(gl.getUniformLocation(prog, "time"), new Float32Array([p]));
 
@@ -423,11 +439,6 @@
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
 
-            // var ext = gl.getExtension('OES_element_index_uint');
-
-            //  Disable vertex arrays
-            //gl.disableVertexAttribArray(normalLocation);
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 
             const v = dim*2 + 2;
@@ -435,11 +446,10 @@
               gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
             }
 
+            gl.bindTexture(gl.TEXTURE_2D, Texture);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.bindTexture(gl.TEXTURE_2D, null);
 
-            //gl.disableVertexAttribArray(positionLocation);
-
-
-            //  Flush
             gl.flush ();
         }
 
@@ -477,7 +487,6 @@
             //convert to normalized device coordinates
             var mouseX3D = (ev.clientX / window.innerWidth) * 2 - 1;
             var mouseY3D = (ev.clientY / window.innerHeight) * 2 - 1;
-            //console.log('x: ' + mouseX3D + 'y: ' + 'mouseY3D');
 
             if (move == 0) return;
             //  Update angles
