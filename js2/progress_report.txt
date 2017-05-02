@@ -1,0 +1,9 @@
+Jose Canizares
+Advanced Graphics 
+April 6 2017
+
+So far on the project, I've set up WebGL and created a basic grid using indices (so that I can reuse my vertices). I'm looking into creating my noise functions in my vertex shader now so that the heights of random vertices imitate a rocky terrain. I will be making several vertex shaders for different terrains. 
+
+One of the key things I need to figure out is how to create a bloom filter with image processing, and in order to do so, I need to figure out WebGL's way of doing the ping-pong framebuffer passing. Hopefully, it is easy to migrate our examples to Javascript for that. 
+
+For the next two weeks, I am going to work on image processing, playing with photoshop effects like contrast, shadows, exposure, brightness, etc. Then, I will move on to working on the depth of field effect. Hopefully I can find a good tutorial on how to do that.

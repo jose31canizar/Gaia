@@ -99,11 +99,3 @@ height: 10vh;
   background: #595963;
   transition: all, 0.5s, ease-in-out;
 }
-
-#exposure {
-  -webkit-appearance: none;
-  background: #4f4651;
-  outline: none;
-  border-radius: 4px;
-  margin-bottom: 10px;
-}

@@ -32,7 +32,7 @@
     var indicesBuffer;
     var textureCoordinatesBuffer;
 
-    var dim = 3;
+    var dim = 4;
     var scale = 1;
     var la = [0.1]; //ambient light
     var ld = [1.9]; //diffuse light
@@ -49,6 +49,80 @@
 
     var prog;
 
+    function createAndSetupTexture(gl) {
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Set up texture so we can render any size image and so we are
+    // working with pixels.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    return texture;
+    }
+
+
+      // create 2 textures and attach them to framebuffers.
+    var textures = [];
+    var framebuffers = [];
+    for (var ii = 0; ii < 2; ++ii) {
+      var texture = createAndSetupTexture(gl);
+      textures.push(texture);
+
+      // make the texture the same size as the image
+      gl.texImage2D(
+          gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0,
+          gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+      // Create a framebuffer
+      var fbo = gl.createFramebuffer();
+      framebuffers.push(fbo);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+      // Attach a texture to it.
+      gl.framebufferTexture2D(
+          gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+    }
+
+
+
+    // Define several convolution kernels
+    var kernels = {
+      normal: [
+        0, 0, 0,
+        0, 1, 0,
+        0, 0, 0
+      ],
+      gaussianBlur: [
+        0.045, 0.122, 0.045,
+        0.122, 0.332, 0.122,
+        0.045, 0.122, 0.045
+      ],
+      unsharpen: [
+        -1, -1, -1,
+        -1,  9, -1,
+        -1, -1, -1
+      ],
+      emboss: [
+         -2, -1,  0,
+         -1,  1,  1,
+          0,  1,  2
+      ]
+    };
+
+    // List of effects to apply.
+    var effectsToApply = [
+      "gaussianBlur",
+      "emboss",
+      "gaussianBlur",
+      "unsharpen"
+    ];
+
+
+
+
 
     function initTextureFramebuffer() {
       Framebuffer = gl.createFramebuffer();
@@ -56,29 +130,23 @@
       Framebuffer.width = 512;
       Framebuffer.height = 512;
 
-        Texture = gl.createTexture();
+      Texture = gl.createTexture();
         Framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
         Framebuffer.width = 512;
         Framebuffer.height = 512;
-
         Texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, Texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         // gl.generateMipmap(gl.TEXTURE_2D);
-        // gl.getExtension('OES_texture_float');
+        gl.getExtension('OES_texture_float');
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Framebuffer.width, Framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); //gl.Float third to last parameter was gl.RGBA
-        // gl.generateMipmap(gl.TEXTURE_2D);
-
         var renderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, Framebuffer.width, Framebuffer.height);
-
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, Texture, 0);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-
         gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -124,11 +192,10 @@
       var textureCoordinates = [];
       for(var i = 0; i < dim + 1; i++) {
         for(var j = 0; j < dim + 1; j++) {
-          textureCoordinates.push(i/dim);
-          textureCoordinates.push(j/dim);
+          textureCoordinates.push(i/5.0);
+          textureCoordinates.push(j/5.0);
         }
       }
-
       console.log(textureCoordinates);
       return textureCoordinates;
     }
@@ -296,59 +363,26 @@
         Display();
 
 
-        // setInterval(function(){
-        //   Display();
-        // }, 50);
+        setInterval(function(){
+          Display();
+        }, 50);
 
 
         function Display() {
 
+          // gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
           //
-          // Texture = gl.createTexture();
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
-          // var whitePixel = new Uint8Array([255, 0, 255, 255]);
-          // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0,
-          //               gl.RGBA, gl.UNSIGNED_BYTE, null);
+          // Draw();
           //
-          // var fb = gl.createFramebuffer();
-          // gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-          // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, Texture, 0);
+          // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
-
-          gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
-            // gl.bindTexture(gl.TEXTURE_2D, null);
-          // gl.clearColor(1, 0, 0, 1); // red
-          Draw();
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // gl.bindTexture(gl.TEXTURE_2D, null);
-
-
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);  // use the white texture
-
-          // gl.clearColor(1, 0, 0, 1); // red
-
-
-          gl.disable(gl.DEPTH_TEST);
-
-          // gl.useProgram(prog);
-
-          // gl.clearColor(1.0, 0.0, 0.0, 1.0);
-
-          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+          // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
           // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
 
           //  Clear the screen and Z buffer
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
-
-
-          // gl.activeTexture(gl.TEXTURE0);
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
-
-          // // Compute modelview matrix
+          // Compute modelview matrix
           var ModelViewMatrix = new CanvasMatrix4();
           ModelViewMatrix.makeIdentity();
 
@@ -357,7 +391,7 @@
           ModelViewMatrix.translate(0, 0, -0.2);
 
           // Set shader
-          // gl.useProgram(prog);
+          gl.useProgram(prog);
 
           var r = [red(currentColor)/255.0];
           var g = [green(currentColor)/255.0];
@@ -393,45 +427,34 @@
           gl.vertexAttribPointer(textureLocation, 2, gl.FLOAT, false, 0, 0);
 
 
+
           //  Set projection and modelview matrixes
           gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
           gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
           gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
 
-          // gl.bindTexture(gl.TEXTURE_2D, null);
-
-          gl.enable(gl.DEPTH_TEST);
-
-          // gl.generateMipmap(gl.TEXTURE_2D);
-          // gl.uniform1i(gl.getUniformLocation(prog, "uSampler"), 0);
-
-          // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 
 
-          //
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+
           const v = dim*2 + 2;
           for(var i = 0; i < dim; i++) {
             gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
           }
 
-          // gl.activeTexture(gl.TEXTURE0);
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
-          // gl.uniform1i(prog.samplerUniform, 0);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, Texture);
+          gl.uniform1i(prog.samplerUniform, 0);
         }
 
         function Draw() {
 
             // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-            // gl.viewport(0, 0, 512, 512);
             // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             //  Clear the screen and Z buffer
-
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            // gl.clearColor(0.5, 0.5, 0, 1); // red
-
-            //Compute modelview matrix
+            // Compute modelview matrix
             var ModelViewMatrix = new CanvasMatrix4();
             ModelViewMatrix.makeIdentity();
 
@@ -440,12 +463,12 @@
             ModelViewMatrix.translate(0, 0, -0.2);
 
             // Set shader
-            // gl.useProgram(prog);
-            //
+            gl.useProgram(prog);
+
             var r = [red(currentColor)/255.0];
             var g = [green(currentColor)/255.0];
             var b = [blue(currentColor)/255.0];
-            //
+
             var t = Date.now() /1000; //seconds in decimal
             var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
 
@@ -471,24 +494,13 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
             gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
 
-            gl.enableVertexAttribArray(textureLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordinatesBuffer);
-            gl.vertexAttribPointer(textureLocation, 2, gl.FLOAT, false, 0, 0);
-            //
-            //
+
             //  Set projection and modelview matrixes
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
             gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
 
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, Texture);
-            // gl.uniform1i(gl.getUniformLocation(prog, "uSampler"), 0);
-
-
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-
 
 
 
@@ -497,14 +509,11 @@
               gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
             }
 
-            // gl.bindTexture(gl.TEXTURE_2D, Texture);
+            gl.bindTexture(gl.TEXTURE_2D, Texture);
             // gl.generateMipmap(gl.TEXTURE_2D);
-            // gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
 
-
-
-
-            // gl.flush ();
+            gl.flush ();
         }
 
         //
