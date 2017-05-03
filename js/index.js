@@ -1,5 +1,14 @@
     var currentColor = palette.red;
 
+    var terrainHeight = 1;
+
+    var blur = 0.0;
+    var wave = 0.0;
+    var frac = 1.0;
+    var atmos = 0.0;
+
+    var interval;
+
     var r = 0.95;
     var g = 0.95;
     var b = 0.94;
@@ -40,9 +49,9 @@
     var ls = [0.75]; //specular light
 
     //light position
-    var x = [1.5];
-    var y = [1.5];
-    var z = [1.5];
+    var x = 1.5;
+    var y = 1.5;
+    var z = 1.5;
 
     var positionLocation;
     var normalLocation;
@@ -66,7 +75,7 @@
         // gl.generateMipmap(gl.TEXTURE_2D);
         gl.getExtension('OES_texture_float');
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Framebuffer.width, Framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); //gl.Float third to last parameter was gl.RGBA
-        gl.generateMipmap(gl.TEXTURE_2D);
+        // gl.generateMipmap(gl.TEXTURE_2D);
 
         var renderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
@@ -120,8 +129,8 @@
       var textureCoordinates = [];
       for(var i = 0; i < dim + 1; i++) {
         for(var j = 0; j < dim + 1; j++) {
-          textureCoordinates.push(i/dim);
-          textureCoordinates.push(j/dim);
+          textureCoordinates.push((i/dim));
+          textureCoordinates.push((j/dim));
         }
       }
 
@@ -227,7 +236,7 @@
 
 
       //  Set program
-      gl.useProgram(prog);
+      // gl.useProgram(prog);
 
 
       positionLocation = gl.getAttribLocation(prog, "XYZ");
@@ -243,16 +252,24 @@
     }
 
     var gl, canvas;
+    var ProjectionMatrix;
+    // var ModelViewMatrix;
 
     function render() {
 
         //  Set viewport to entire canvas
         gl.viewport(0, 0, canvas.width, canvas.height);
+        // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         //  Set projection
-        var ProjectionMatrix = new CanvasMatrix4();
+        ProjectionMatrix = new CanvasMatrix4();
 
-        ProjectionMatrix.perspective(100, asp, 0.001, 100);
+
+        ProjectionMatrix.perspective(100, asp, 0.01, 100);
+
+
+        // ModelViewMatrix = new CanvasMatrix4();
+        // ModelViewMatrix.makeIdentity();
 
         normalsBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
@@ -282,8 +299,6 @@
         textureCoordinates = setUpTextureCoordinates(dim);
 
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
-
-
         // indicesBuffer.itemSize = 1;
         // indicesBuffer.numItems = 16;
 
@@ -294,34 +309,39 @@
         drawScene();
 
 
-        // setInterval(function(){
-        //   drawScene();
-        // }, 50);
+
+        //
+
+        if(wave == 1.0) {
+          interval = setInterval(function(){
+            drawScene();
+          }, 50);
+        } else {
+          clearInterval(interval);
+        }
+
 
 
         function drawScene() {
-
-          //
-          // Texture = gl.createTexture();
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
-          // var whitePixel = new Uint8Array([255, 0, 255, 255]);
-          // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0,
-          //               gl.RGBA, gl.UNSIGNED_BYTE, null);
-          //
-          // var fb = gl.createFramebuffer();
-          // gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+          // gl.bindTexture(gl.TEXTURE_2D, null);
 
 
-
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
 
           gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
           // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, Texture, 0);
             // gl.bindTexture(gl.TEXTURE_2D, null);
           // gl.clearColor(1, 0, 0, 1); // red
           draw();
+
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            // gl.bindTexture(gl.TEXTURE_2D, null);
+
+          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+          // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
+
+          gl.useProgram(prog2);
+
+          // gl.bindTexture(gl.TEXTURE_2D, Texture);
+
 
 
           // gl.bindTexture(gl.TEXTURE_2D, null);  // use the white texture
@@ -331,11 +351,12 @@
 
           gl.disable(gl.DEPTH_TEST);
 
-          gl.useProgram(prog2);
+
 
           // gl.clearColor(1.0, 0.0, 0.0, 1.0);
 
           gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+          // gl.viewport(0, 0, 512, 512);
           // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
 
           //  Clear the screen and Z buffer
@@ -358,8 +379,6 @@
           // Set shader
           // gl.useProgram(prog);
 
-          currentColor = palette.red;
-
           var r = [red(currentColor)/255.0];
           var g = [green(currentColor)/255.0];
           var b = [blue(currentColor)/255.0];
@@ -367,11 +386,19 @@
           var t = Date.now() /1000; //seconds in decimal
           var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
 
-          gl.uniform1f(gl.getUniformLocation(prog2, "time"), new Float32Array([p]));
+          var dx = frac/gl.canvas.width;
+          var dy = frac/gl.canvas.height;
 
-          gl.uniform1f(gl.getUniformLocation(prog2, "lx"), new Float32Array(x));
-          gl.uniform1f(gl.getUniformLocation(prog2, "ly"), new Float32Array(y));
-          gl.uniform1f(gl.getUniformLocation(prog2, "lz"), new Float32Array(z));
+          gl.uniform1f(gl.getUniformLocation(prog2, "time"), new Float32Array([p]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "terrainHeight"), new Float32Array([terrainHeight]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "dx"), new Float32Array([dx]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "dy"), new Float32Array([dy]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "blur"), new Float32Array([blur]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "atmos"), new Float32Array([atmos]));
+
+          gl.uniform1f(gl.getUniformLocation(prog2, "lx"), new Float32Array([x]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "ly"), new Float32Array([y]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "lz"), new Float32Array([z]));
 
           gl.uniform1f(gl.getUniformLocation(prog2, "LightAmbient"), new Float32Array(la));
           gl.uniform1f(gl.getUniformLocation(prog2, "LightDiffuse"), new Float32Array(ld));
@@ -419,7 +446,7 @@
           }
 
           // gl.drawElements(gl.TRIANGLE_STRIP, dim*2 + 2, gl.UNSIGNED_SHORT, 0);
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);
+          gl.bindTexture(gl.TEXTURE_2D, null);
 
           // gl.activeTexture(gl.TEXTURE0);
           // gl.bindTexture(gl.TEXTURE_2D, Texture);
@@ -430,6 +457,7 @@
 
             gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
             // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            // gl.viewport(0, 0, window.innerWidth, window.innerHeight);
             // gl.viewport(0, 0, 512, 512);
             // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             //  Clear the screen and Z buffer
@@ -442,14 +470,13 @@
             var ModelViewMatrix = new CanvasMatrix4();
             ModelViewMatrix.makeIdentity();
 
-            ModelViewMatrix.rotate(ph, 0, 1, 0);
-            ModelViewMatrix.rotate(th, 1, 0, 0);
-            ModelViewMatrix.translate(0, 0, -0.2);
+            // ModelViewMatrix.rotate(180, 0, 1, 0);
+            ModelViewMatrix.rotate(90, 1, 0, 0);
+            ModelViewMatrix.translate(0.0, 0.0, -0.2);
 
             // Set shader
             gl.useProgram(prog);
 
-            currentColor = palette.green;
             //
             var r = [red(currentColor)/255.0];
             var g = [green(currentColor)/255.0];
@@ -459,10 +486,11 @@
             var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
 
             gl.uniform1f(gl.getUniformLocation(prog, "time"), new Float32Array([p]));
+            gl.uniform1f(gl.getUniformLocation(prog, "terrainHeight"), new Float32Array([terrainHeight]));
 
-            gl.uniform1f(gl.getUniformLocation(prog, "lx"), new Float32Array(x));
-            gl.uniform1f(gl.getUniformLocation(prog, "ly"), new Float32Array(y));
-            gl.uniform1f(gl.getUniformLocation(prog, "lz"), new Float32Array(z));
+            gl.uniform1f(gl.getUniformLocation(prog, "lx"), new Float32Array([x]));
+            gl.uniform1f(gl.getUniformLocation(prog, "ly"), new Float32Array([y]));
+            gl.uniform1f(gl.getUniformLocation(prog, "lz"), new Float32Array([z]));
 
             gl.uniform1f(gl.getUniformLocation(prog, "LightAmbient"), new Float32Array(la));
             gl.uniform1f(gl.getUniformLocation(prog, "LightDiffuse"), new Float32Array(ld));
@@ -509,7 +537,7 @@
             // gl.generateMipmap(gl.TEXTURE_2D);
             // gl.bindTexture(gl.TEXTURE_2D, null);
 
-            // gl.flush ();
+            gl.flush ();
         }
 
         //

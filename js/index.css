@@ -8,22 +8,27 @@ canvas {
 }
 
 h1 {
-  font-family: Karla, Futura, Helvetica, sans-serif;
+  font-family: Questrial, Futura, Helvetica, sans-serif;
   color: #606754;
+  text-align: center;
 }
 
 p {
-  font-family: Karla, Futura, Helvetica, sans-serif;
+  font-family: 'Josefin Sans', Futura, Helvetica, sans-serif;
   color: #606754;
+  text-align: center;
 }
 
 #dropdown {
   position: absolute;
   left: 0;
-  background: #8181a9;
+  background: #2b2b34;
   display: block;
   width: 100%;
   border-radius: 5px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  /*padding-left: 10px;*/
 }
 
 .btn {
@@ -80,30 +85,34 @@ p {
 }
 
 .change-dim {
-  background: #8181a9;
+  transition: all, 0.5s, ease-in-out;
+  background: #2b2b34;
   border-radius: 4px;
   margin-bottom: 10px;
-  font-family: karla;
+  font-family: 'Questrial';
   font-size: 12px;
   text-align: center;
   color: white;
   user-select: none;
   cursor: pointer;
   display: flex;
-justify-content: center;
-align-items: center;
-height: 10vh;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
 }
 
 .change-dim:hover {
   background: #595963;
-  transition: all, 0.5s, ease-in-out;
 }
 
-#exposure {
+.slider {
   -webkit-appearance: none;
-  background: #4f4651;
+  background: #222127;
   outline: none;
   border-radius: 4px;
-  margin-bottom: 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 100%;
+  height: 4px;
+  display: flex;
 }
