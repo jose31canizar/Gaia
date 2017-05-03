@@ -6,6 +6,7 @@
 
     var Framebuffer;
     var Texture;
+    var secondTexture;
 
     //  Mouse control variables
     var x0 = y0 = move = 0;
@@ -48,15 +49,10 @@
     var textureLocation;
 
     var prog;
+    var prog2;
 
 
     function initTextureFramebuffer() {
-      Framebuffer = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
-      Framebuffer.width = 512;
-      Framebuffer.height = 512;
-
-        Texture = gl.createTexture();
         Framebuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
         Framebuffer.width = 512;
@@ -68,9 +64,9 @@
         // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         // gl.generateMipmap(gl.TEXTURE_2D);
-        // gl.getExtension('OES_texture_float');
+        gl.getExtension('OES_texture_float');
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, Framebuffer.width, Framebuffer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); //gl.Float third to last parameter was gl.RGBA
-        // gl.generateMipmap(gl.TEXTURE_2D);
+        gl.generateMipmap(gl.TEXTURE_2D);
 
         var renderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
@@ -215,7 +211,7 @@
           return;
       }
       try {
-          gl = canvas.getContext("webgl2");
+          gl = canvas.getContext("experimental-webgl");
       } catch (e) {}
       if (!gl) {
           alert("Can't get WebGL");
@@ -227,6 +223,8 @@
 
       //  Load Shader
       prog = CompileShaderProg(gl, "shader-vs", "shader-fs");
+      prog2 = CompileShaderProg(gl, "shader2-vs", "shader2-fs");
+
 
       //  Set program
       gl.useProgram(prog);
@@ -293,15 +291,15 @@
         gl.enable(gl.DEPTH_TEST);
         gl.clearColor(r, g, b, 1);
 
-        Display();
+        drawScene();
 
 
         // setInterval(function(){
-        //   Display();
+        //   drawScene();
         // }, 50);
 
 
-        function Display() {
+        function drawScene() {
 
           //
           // Texture = gl.createTexture();
@@ -312,27 +310,28 @@
           //
           // var fb = gl.createFramebuffer();
           // gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-          // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, Texture, 0);
+
 
 
           // gl.bindTexture(gl.TEXTURE_2D, Texture);
 
           gl.bindFramebuffer(gl.FRAMEBUFFER, Framebuffer);
+          // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, Texture, 0);
             // gl.bindTexture(gl.TEXTURE_2D, null);
           // gl.clearColor(1, 0, 0, 1); // red
-          Draw();
+          draw();
           gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             // gl.bindTexture(gl.TEXTURE_2D, null);
 
 
-          // gl.bindTexture(gl.TEXTURE_2D, Texture);  // use the white texture
+          // gl.bindTexture(gl.TEXTURE_2D, null);  // use the white texture
 
           // gl.clearColor(1, 0, 0, 1); // red
 
 
           gl.disable(gl.DEPTH_TEST);
 
-          // gl.useProgram(prog);
+          gl.useProgram(prog2);
 
           // gl.clearColor(1.0, 0.0, 0.0, 1.0);
 
@@ -359,6 +358,8 @@
           // Set shader
           // gl.useProgram(prog);
 
+          currentColor = palette.red;
+
           var r = [red(currentColor)/255.0];
           var g = [green(currentColor)/255.0];
           var b = [blue(currentColor)/255.0];
@@ -366,19 +367,19 @@
           var t = Date.now() /1000; //seconds in decimal
           var p = Math.sin(Math.sin(t + 2.0) + 2.0) + 0.25;
 
-          gl.uniform1f(gl.getUniformLocation(prog, "time"), new Float32Array([p]));
+          gl.uniform1f(gl.getUniformLocation(prog2, "time"), new Float32Array([p]));
 
-          gl.uniform1f(gl.getUniformLocation(prog, "lx"), new Float32Array(x));
-          gl.uniform1f(gl.getUniformLocation(prog, "ly"), new Float32Array(y));
-          gl.uniform1f(gl.getUniformLocation(prog, "lz"), new Float32Array(z));
+          gl.uniform1f(gl.getUniformLocation(prog2, "lx"), new Float32Array(x));
+          gl.uniform1f(gl.getUniformLocation(prog2, "ly"), new Float32Array(y));
+          gl.uniform1f(gl.getUniformLocation(prog2, "lz"), new Float32Array(z));
 
-          gl.uniform1f(gl.getUniformLocation(prog, "LightAmbient"), new Float32Array(la));
-          gl.uniform1f(gl.getUniformLocation(prog, "LightDiffuse"), new Float32Array(ld));
-          gl.uniform1f(gl.getUniformLocation(prog, "LightSpecular"), new Float32Array(ls));
+          gl.uniform1f(gl.getUniformLocation(prog2, "LightAmbient"), new Float32Array(la));
+          gl.uniform1f(gl.getUniformLocation(prog2, "LightDiffuse"), new Float32Array(ld));
+          gl.uniform1f(gl.getUniformLocation(prog2, "LightSpecular"), new Float32Array(ls));
 
-          gl.uniform1f(gl.getUniformLocation(prog, "Red"), new Float32Array(r));
-          gl.uniform1f(gl.getUniformLocation(prog, "Green"), new Float32Array(g));
-          gl.uniform1f(gl.getUniformLocation(prog, "Blue"), new Float32Array(b));
+          gl.uniform1f(gl.getUniformLocation(prog2, "Red"), new Float32Array(r));
+          gl.uniform1f(gl.getUniformLocation(prog2, "Green"), new Float32Array(g));
+          gl.uniform1f(gl.getUniformLocation(prog2, "Blue"), new Float32Array(b));
 
           gl.enableVertexAttribArray(positionLocation);
           gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -394,11 +395,11 @@
 
 
           //  Set projection and modelview matrixes
-          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
-          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
-          gl.uniformMatrix4fv(gl.getUniformLocation(prog, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog2, "ProjectionMatrix"), false, new Float32Array(ProjectionMatrix.getAsArray()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog2, "ModelViewMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
+          gl.uniformMatrix4fv(gl.getUniformLocation(prog2, "NormalMatrix"), false, new Float32Array(ModelViewMatrix.getAsArray()));
 
-          // gl.bindTexture(gl.TEXTURE_2D, null);
+
 
           gl.enable(gl.DEPTH_TEST);
 
@@ -407,6 +408,9 @@
 
           // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 
+          // gl.activeTexture(gl.TEXTURE0);
+          // gl.bindTexture(gl.TEXTURE_2D, Texture);
+          // gl.uniform1i(prog.samplerUniform, 0);
 
           //
           const v = dim*2 + 2;
@@ -414,15 +418,18 @@
             gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
           }
 
+          // gl.drawElements(gl.TRIANGLE_STRIP, dim*2 + 2, gl.UNSIGNED_SHORT, 0);
+          // gl.bindTexture(gl.TEXTURE_2D, Texture);
+
           // gl.activeTexture(gl.TEXTURE0);
           // gl.bindTexture(gl.TEXTURE_2D, Texture);
           // gl.uniform1i(prog.samplerUniform, 0);
         }
 
-        function Draw() {
+        function draw() {
 
-            // gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.viewport(0, 0, Framebuffer.width, Framebuffer.height);
+            // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
             // gl.viewport(0, 0, 512, 512);
             // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             //  Clear the screen and Z buffer
@@ -440,7 +447,9 @@
             ModelViewMatrix.translate(0, 0, -0.2);
 
             // Set shader
-            // gl.useProgram(prog);
+            gl.useProgram(prog);
+
+            currentColor = palette.green;
             //
             var r = [red(currentColor)/255.0];
             var g = [green(currentColor)/255.0];
@@ -462,6 +471,10 @@
             gl.uniform1f(gl.getUniformLocation(prog, "Red"), new Float32Array(r));
             gl.uniform1f(gl.getUniformLocation(prog, "Green"), new Float32Array(g));
             gl.uniform1f(gl.getUniformLocation(prog, "Blue"), new Float32Array(b));
+
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, secondTexture);
+            // gl.uniform1i(prog.samplerUniform, 0);
 
             gl.enableVertexAttribArray(positionLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -485,24 +498,16 @@
             // gl.bindTexture(gl.TEXTURE_2D, Texture);
             // gl.uniform1i(gl.getUniformLocation(prog, "uSampler"), 0);
 
-
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-
-
-
 
             const v = dim*2 + 2;
             for(var i = 0; i < dim; i++) {
               gl.drawElements(gl.TRIANGLE_STRIP, v, gl.UNSIGNED_SHORT, i*(v*2));
             }
 
-            // gl.bindTexture(gl.TEXTURE_2D, Texture);
+            gl.bindTexture(gl.TEXTURE_2D, Texture);
             // gl.generateMipmap(gl.TEXTURE_2D);
             // gl.bindTexture(gl.TEXTURE_2D, null);
-
-
-
 
             // gl.flush ();
         }
@@ -515,7 +520,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             gl.viewport(0, 0, canvas.width, canvas.height);
-            Display();
+            drawScene();
         }
 
         //
@@ -550,6 +555,6 @@
             x0 = ev.clientX;
             y0 = ev.clientY;
             //  Redisplay
-            Display();
+            drawScene();
         }
     }
